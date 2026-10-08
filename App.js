@@ -1,91 +1,110 @@
-import * as React from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Ionicons } from "@expo/vector-icons";
-import HomeScreen from "./src/pages/HomeScreen";
-import AboutScreen from "./src/pages/AboutScreen";
-import EpisodeScreen from "./src/pages/EpisodeScreen";
-import DetailScreen from "./src/pages/DetailScreen";
-import ProfileScreen from "./src/pages/ProfileScreen";
+import { Ionicons } from '@expo/vector-icons';
+import { DarkTheme, NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { StatusBar } from 'expo-status-bar';
 
-const HomeStack = createNativeStackNavigator();
+import AboutScreen from './src/pages/AboutScreen';
+import DetailScreen from './src/pages/DetailScreen';
+import EpisodeScreen from './src/pages/EpisodeScreen';
+import HomeScreen from './src/pages/HomeScreen';
+import ProfileScreen from './src/pages/ProfileScreen';
+import { colors } from './src/theme';
 
-function HomeStackScreen() {
-  return (
-    <HomeStack.Navigator>
-      <HomeStack.Screen name="Home Page" component={HomeScreen} />
-      <HomeStack.Screen name="Detail Page" component={DetailScreen} />
-    </HomeStack.Navigator>
-  );
-}
-
-const AboutStack = createNativeStackNavigator();
-
-function AboutStackScreen() {
-  return (
-    <AboutStack.Navigator>
-      <AboutStack.Screen
-        name="About Page"
-        component={AboutScreen}
-        options={{
-          headerTintColor: "#000",
-          headerStyle: {
-            backgroundColor: "#fff",
-          },
-        }}
-      />
-      <AboutStack.Screen
-        name="Profile Page"
-        component={ProfileScreen}
-        options={{
-          headerTintColor: "#000",
-          headerStyle: {
-            backgroundColor: "#fff",
-          },
-        }}
-      />
-    </AboutStack.Navigator>
-  );
-}
-
+const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+
+const navigationTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: colors.background,
+    border: colors.border,
+    card: colors.surface,
+    primary: colors.portal,
+    text: colors.text,
+  },
+};
+
+function CharacterStack() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.surface },
+        headerTintColor: colors.text,
+      }}
+    >
+      <Stack.Screen
+        component={HomeScreen}
+        name="CharacterList"
+        options={{ title: 'Rick and Morty Explorer' }}
+      />
+      <Stack.Screen
+        component={DetailScreen}
+        name="CharacterDetail"
+        options={({ route }) => ({ title: route.params.character.name })}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function AboutStack() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.surface },
+        headerTintColor: colors.text,
+      }}
+    >
+      <Stack.Screen
+        component={AboutScreen}
+        name="AboutProject"
+        options={{ title: 'About' }}
+      />
+      <Stack.Screen
+        component={ProfileScreen}
+        name="Profile"
+        options={{ title: 'Developer' }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+const tabIcons = {
+  Characters: ['people-outline', 'people'],
+  Episodes: ['film-outline', 'film'],
+  About: ['information-circle-outline', 'information-circle'],
+};
 
 export default function App() {
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navigationTheme}>
+      <StatusBar style="light" />
       <Tab.Navigator
         screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName;
-
-            if (route.name === "Home") {
-              iconName = focused ? "ios-list" : "ios-list-outline";
-            } else if (route.name === "Episode") {
-              iconName = focused
-                ? "ios-caret-forward-circle"
-                : "ios-caret-forward-circle-outline";
-            } else if (route.name === "About") {
-              iconName = focused
-                ? "ios-information-circle"
-                : "ios-information-circle-outline";
-            }
-
-            return <Ionicons name={iconName} color={color} size={size} />;
+          headerStyle: { backgroundColor: colors.surface },
+          headerTintColor: colors.text,
+          tabBarActiveTintColor: colors.portal,
+          tabBarInactiveTintColor: colors.muted,
+          tabBarStyle: {
+            backgroundColor: colors.surface,
+            borderTopColor: colors.border,
           },
-          tabBarActiveTintColor: "#1FA340",
-          tabBarInactiveTintColor: "#000",
+          tabBarIcon: ({ color, focused, size }) => {
+            const iconName = tabIcons[route.name][focused ? 1 : 0];
+            return <Ionicons color={color} name={iconName} size={size} />;
+          },
         })}
       >
         <Tab.Screen
-          name="Home"
-          component={HomeStackScreen}
+          component={CharacterStack}
+          name="Characters"
           options={{ headerShown: false }}
         />
-        <Tab.Screen name="Episode" component={EpisodeScreen} />
+        <Tab.Screen component={EpisodeScreen} name="Episodes" />
         <Tab.Screen
+          component={AboutStack}
           name="About"
-          component={AboutStackScreen}
           options={{ headerShown: false }}
         />
       </Tab.Navigator>
