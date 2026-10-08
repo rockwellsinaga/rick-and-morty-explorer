@@ -1,97 +1,111 @@
-import React, { useState, useEffect } from "react";
-import { Text, Image, View, TouchableOpacity, Linking } from "react-native";
+import { useEffect, useState } from 'react';
+import { Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { LoadingState, MessageState } from '../components/ScreenState';
+import { colors } from '../theme';
+
+const PROFILE_URL = 'https://api.github.com/users/rockwellsinaga';
 
 export default function ProfileScreen() {
-  const [githubData, setGithubData] = useState({});
+  const [profile, setProfile] = useState(null);
+  const [error, setError] = useState(null);
 
-  const getGithubData = async () => {
-    const response = await fetch("https://api.github.com/users/rockwellsinaga");
-    const data = await response.json();
-    setGithubData(data);
+  const loadProfile = async () => {
+    setError(null);
+    try {
+      const response = await fetch(PROFILE_URL);
+      if (!response.ok) {
+        throw new Error(`GitHub request failed (${response.status})`);
+      }
+      setProfile(await response.json());
+    } catch (requestError) {
+      setError(requestError.message);
+    }
   };
 
   useEffect(() => {
-    getGithubData();
+    loadProfile();
   }, []);
 
-  const instagramUsername = "rockwellsinaga"; // Replace with your Instagram username
-  const youtubeUsername = "UCt4R31oTbS8cz2k3ZHKsGNw"; // Replace with your YouTube username
+  if (!profile && !error) {
+    return (
+      <View style={styles.screen}>
+        <LoadingState label="Loading developer profile..." />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.screen}>
+        <MessageState
+          actionLabel="Try again"
+          message={error}
+          onAction={loadProfile}
+          title="Unable to load profile"
+        />
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.content}>
-        <Image
-          source={{
-            uri: githubData.avatar_url,
-          }}
-          style={{ borderRadius: 150, width: 300, height: 300 }}
-        />
-        {githubData.name && <Text>{githubData.name}</Text>}
-        {githubData.login && <Text>{githubData.login}</Text>}
-
-        <View style={styles.logoContainer}>
-          {githubData.html_url && (
-            <TouchableOpacity
-              onPress={() => Linking.openURL(githubData.html_url)}
-            >
-              <Image
-                source={require("../../assets/github.png")}
-                style={styles.logo}
-              />
-            </TouchableOpacity>
-          )}
-          {instagramUsername && (
-            <TouchableOpacity
-              onPress={() =>
-                Linking.openURL(
-                  `https://www.instagram.com/${instagramUsername}`
-                )
-              }
-            >
-              <Image
-                source={require("../../assets/instagram.png")}
-                style={styles.logo}
-              />
-            </TouchableOpacity>
-          )}
-          {youtubeUsername && (
-            <TouchableOpacity
-              onPress={() =>
-                Linking.openURL(
-                  `https://www.youtube.com/channel/${youtubeUsername}`
-                )
-              }
-            >
-              <Image
-                source={require("../../assets/youtube.png")}
-                style={styles.logo}
-              />
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
+    <View style={styles.screen}>
+      <Image source={{ uri: profile.avatar_url }} style={styles.avatar} />
+      <Text style={styles.name}>{profile.name || profile.login}</Text>
+      <Text style={styles.username}>@{profile.login}</Text>
+      {profile.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
+      <Pressable
+        onPress={() => Linking.openURL(profile.html_url)}
+        style={styles.button}
+      >
+        <Text style={styles.buttonText}>Open GitHub profile</Text>
+      </Pressable>
     </View>
   );
 }
 
-const styles = {
-  container: {
+const styles = StyleSheet.create({
+  screen: {
+    alignItems: 'center',
+    backgroundColor: colors.background,
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F3EE7B",
+    justifyContent: 'center',
+    padding: 24,
   },
-  content: {
-    alignItems: "center",
+  avatar: {
+    borderColor: colors.portal,
+    borderRadius: 90,
+    borderWidth: 3,
+    height: 180,
+    width: 180,
   },
-  logoContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginVertical: 10,
+  name: {
+    color: colors.text,
+    fontSize: 26,
+    fontWeight: '900',
+    marginTop: 20,
   },
-  logo: {
-    width: 50,
-    height: 50,
-    marginHorizontal: 10,
+  username: {
+    color: colors.cyan,
+    fontSize: 16,
+    marginTop: 4,
   },
-};
+  bio: {
+    color: colors.muted,
+    lineHeight: 22,
+    marginTop: 14,
+    maxWidth: 420,
+    textAlign: 'center',
+  },
+  button: {
+    backgroundColor: colors.portal,
+    borderRadius: 12,
+    marginTop: 22,
+    paddingHorizontal: 20,
+    paddingVertical: 13,
+  },
+  buttonText: {
+    color: colors.background,
+    fontWeight: '900',
+  },
+});

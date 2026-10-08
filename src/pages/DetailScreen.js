@@ -1,70 +1,93 @@
-import React, { Component, useState, useEffect } from "react";
-import {
-  Text,
-  TextInput,
-  Button,
-  FlatList,
-  ScrollView,
-  View,
-  StyleSheet,
-  Image,
-  Alert,
-  TouchableOpacity,
-  Touchable,
-} from "react-native";
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-function DetailScreen({ route, navigation }) {
-  const { name, image, status, species, gender } = route.params;
+import { colors } from '../theme';
+
+const DetailRow = ({ label, value }) => (
+  <View style={styles.row}>
+    <Text style={styles.label}>{label}</Text>
+    <Text style={styles.value}>{value || 'Unknown'}</Text>
+  </View>
+);
+
+export default function DetailScreen({ route }) {
+  const { character } = route.params;
 
   return (
-    <View
-      style={{
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "flex-start",
-        backgroundColor: "#F3EE7B",
-      }}
-    >
-      <ScrollView>
-        <Image
-          source={{ uri: image }}
-          style={{
-            top: 15,
-            width: 360,
-            height: 360,
-            borderWidth: 2,
-            borderRadius: 10,
-            borderColor: "#1FA340",
-            backgroundColor: "#1FA340",
-          }}
+    <ScrollView contentContainerStyle={styles.content} style={styles.screen}>
+      <Image source={{ uri: character.image }} style={styles.image} />
+      <Text style={styles.name}>{character.name}</Text>
+      <Text style={styles.summary}>
+        {character.status} · {character.species}
+        {character.type ? ` · ${character.type}` : ''}
+      </Text>
+
+      <View style={styles.panel}>
+        <DetailRow label="Gender" value={character.gender} />
+        <DetailRow label="Origin" value={character.origin?.name} />
+        <DetailRow label="Last location" value={character.location?.name} />
+        <DetailRow
+          label="Episode appearances"
+          value={String(character.episode?.length ?? 0)}
         />
-        <Text style={styles.txtP}>Nama: {name}</Text>
-        <Text style={styles.txtP}>Status: {status}</Text>
-        <Text style={styles.txtP}>Species: {species}</Text>
-        <Text style={styles.txtP}>Gender: {gender}</Text>
-        <View style={{ margin: 50, backgroundColor: "#1FA340" }}>
-          <Button
-            title="Go Back"
-            onPress={() => navigation.goBack()}
-            color="#1FA340"
-          />
-        </View>
-      </ScrollView>
-    </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  txtP: {
-    color: "#03B0C7",
-    fontSize: 25,
-    fontWeight: "bold",
-    marginTop: 30,
-    textAlign: "center",
-    backgroundColor: "#000",
-    borderRadius: 10,
-    borderColor: "#000",
+  screen: {
+    backgroundColor: colors.background,
+  },
+  content: {
+    alignItems: 'center',
+    padding: 20,
+    paddingBottom: 40,
+  },
+  image: {
+    aspectRatio: 1,
+    borderColor: colors.portal,
+    borderRadius: 24,
+    borderWidth: 3,
+    maxWidth: 420,
+    width: '100%',
+  },
+  name: {
+    color: colors.text,
+    fontSize: 30,
+    fontWeight: '900',
+    marginTop: 20,
+    textAlign: 'center',
+  },
+  summary: {
+    color: colors.portal,
+    fontSize: 16,
+    marginTop: 6,
+    textAlign: 'center',
+  },
+  panel: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 16,
+    borderWidth: 1,
+    marginTop: 22,
+    maxWidth: 560,
+    padding: 18,
+    width: '100%',
+  },
+  row: {
+    borderBottomColor: colors.border,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 12,
+  },
+  label: {
+    color: colors.muted,
+    fontSize: 12,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  value: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
-
-export default DetailScreen;
